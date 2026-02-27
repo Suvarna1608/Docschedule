@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MediCare Hospital</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root { --primary:#2b4fff; --muted:#8a98b0; }
+    body { margin:0; font-family:Segoe UI,Arial,sans-serif; background:#f7fafc; }
+    .nav { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.08); position:sticky; top:0; z-index:10; }
+    .nav-links { display:flex; gap:16px; }
+    .nav-links a { text-decoration:none; color:var(--primary); font-weight:600; cursor:pointer; }
+    .logo { font-weight:700; color:var(--primary); display:flex; gap:8px; align-items:center; }
+    .btn { background:var(--primary); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:600; font-size:14px; }
+    .btn.ghost { background:transparent; border:1px solid var(--primary); color:var(--primary); }
+    .pill { display:inline-block; padding:6px 10px; border-ra5dius:20px; background:#eef2ff; color:var(--primary); font-weight:600; }
+
+    .hero { height:75vh; background:url('https://img.freepik.com/fotos-premium/concepto-salud-medica_488220-59136.jpg') center/cover no-repeat; position:relative; color:#fff; display:flex; align-items:center; justify-content:center; text-align:center; }
+    .hero-content { position:relative; z-index:2; max-width:700px; }
+    .hero h1 { font-size:3rem; margin:0;color:hsl(237, 91%, 26%) }
+    .hero p { font-size:1.2rem; margin-top:12px;color:lab(2.68% -0.95 -5.47);align-content: right; text-align: right; }
+    .actions button { margin-right:6px; padding:4px 6px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:13px; }
+    .approve{background:#28a745;color:#fff;} .reject{background:#dc3545;color:#fff;} .edit{background:#ffc107;color:#000;} .delete{background:#dc3545;color:#fff;}
+  
+    .about { display:flex; flex-wrap:wrap; gap:20px; align-items:center;background:#fff; margin:30px auto; padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .about img { max-width:420px; width:100%; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.15); }
+    .about-text { flex:1; min-width:280px;}
+    .about-text h2 { color:var(--primary); margin-top:0; }
+
+    .container { max-width:1000px; margin:20px auto; padding:0 16px; }
+    .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:16px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+
+    label { font-weight:600; color:var(--primary); margin-top:6px; display:block; }
+    input,select,textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-top:4px; }
+    button[type=submit]{margin-top:10px;width:100%;}
+
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td { text-align:left; padding:8px; border-bottom:1px solid #eee; }
+    .actions button { margin-right:6px; padding:4px 6px; border-radius:6px; border:none; font-weight:600; cursor:pointer; font-size:13px; }
+    .approve{background:#28a745;color:#fff;} .reject{background:#dc3545;color:#fff;} .edit{background:#ffc107;color:#000;} .delete{background:#dc3545;color:#fff;}
+    .hidden { display:none!important; }
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:100; }
+    .modal .content { background:#fff; padding:20px; border-radius:10px; width:100%; max-width:400px; position:relative; }
+    .modal .close { position:absolute; right:10px; top:10px; cursor:pointer; font-weight:700; color:var(--primary); }
+  </style>
+</head>
+<body>
+<nav class="nav">
+    <div class="logo"><i class="fas fa-hospital"></i>DOCSCHEDULE</div>
+    <div class="nav-links">
+      <a onclick="scrollToSection('heroSection')">Home</a>
+      <a onclick="scrollToSection('aboutSection')">About</a>
+    </div>
+    <div class="auth">
+      <span id="userBadge" class="pill hidden"></span>
+      <button class="btn ghost" id="btnLogin" onclick="openAuth('login')">Login</button>
+      <button class="btn" id="btnRegister" onclick="openAuth('register')">Register</button>
+      <button class="btn hidden" id="btnLogout" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <section class="hero" id="heroSection">
+    <div class="hero-content">
+      <h1>Welcome to DOCSCHEDULE</h1>
+      <p>Smart healthcare scheduling made simple for patients, doctors, and hospital</p>
+    </div>
+  </section>
+
+  <div class="container" id="aboutSection">
+    <section class="about">
+      <div class="about-text">
+        <h2>About DOCSCHEDULE</h2>
+        <p>DocSchedule is an advanced healthcare scheduling and appointment management system designed to connect patients, doctors, and hospitals seamlessly.</p>
+        <p>Doctors can manage their daily schedules, access patient records, and stay updated with real-time notifications.</p>
+        <p>Administrators can oversee hospital operations, manage doctor profiles, and generate reports to enhance service delivery.</p>
+      </div>
+      <img src="https://thumbs.dreamstime.com/b/hospital-building-modern-parking-lot-59693686.jpg" alt="Hospital">
+    </section>
+  </div>
+
+  <div class="container">
+    <section id="doctorsSection" class="hidden">
+      <h2>Available Doctors</h2>
+      <div class="grid" id="doctorsGrid"></div>
+    </section>
+
+    <section id="bookingSection" class="hidden">
+      <div class="card">
+        <h3>Book Appointment</h3>
+        <form id="appointmentForm">
+          <label>Doctor</label>
+          <select id="doctorSelect" required></select>
+          <label>Date</label>
+          <input type="date" id="apptDate" required>
+          <label>Age</label>
+           <input type="number" id="patientAge" name="patientAge" min="1" max="120" required>
+          <label>Time</label>
+          <select id="apptTime" required>
+            <option value="">Select time</option>
+            <option>09:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+            <option>02:00 PM</option><option>03:00 PM</option><option>04:00 PM</option>
+          </select>
+          <label>Symptoms</label>
+          <textarea id="symptoms"></textarea>
+          <button class="btn" type="submit">Book</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboard" class="hidden">
+      <div class="card">
+        <h3 id="dashTitle"></h3>
+        <div id="patientPanel" class="hidden">
+          <h4>Your Appointments</h4>
+          <table id="patientTable"><thead><tr><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div id="doctorPanel" class="hidden">
+          <h4>Appointments for You</h4>
+          <table id="doctorTable"><thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Symptoms</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table>
+        </div>
+          <div id="adminPanel" class="hidden">
+  <h4>All Appointments</h4>
+  <table id="adminTable">
+    <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h4>Doctors List</h4>
+  <table id="adminDoctors">
+    <thead>
+      <tr><th>Name</th><th>Dept</th><th>Experience</th><th>Email</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h4>Patients List</h4>
+  <table id="adminPatients">
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+</div>
+</section>
+
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="modal">
+    <div class="content">
+      <span class="close" onclick="closeAuth()">×</span>
+      <div id="authContent"></div>
+    </div>
+  </div>
+
+  <!-- Doctor Edit Modal -->
+  <div id="doctorModal" class="modal">
+    <div class="content">
+      <span class="close" onclick="closeDoctorModal()">×</span>
+      <h3>Edit Doctor</h3>
+      <form id="doctorForm">
+        <input type="hidden" id="docId">
+        <label>Name</label><input id="docName" required>
+        <label>Department</label><input id="docDept" required>
+        <label>Experience (yrs)</label><input type="number" id="docExp" required>
+        <label>Email</label><input type="email" id="docEmail" required>
+        <button class="btn" type="submit">Save</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+/* Storage */
+const store={get:(k,f=[])=>JSON.parse(localStorage.getItem(k)||JSON.stringify(f)),set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+if(!store.get('users').length) store.set('users',[{name:"Admin",email:"admin@medicare.test",password:"admin123",role:"admin"}]);
+if(!store.get('doctors').length) store.set('doctors',[]);
+if(!store.get('appts')) store.set('appts',[]);
+let currentUser=store.get('currentUser',null);
+
+function scrollToSection(id){document.getElementById(id).scrollIntoView({behavior:"smooth"});}
+
+
+/* Auth UI */
+function openAuth(mode){
+  document.getElementById('authModal').style.display='flex';
+  const box=document.getElementById('authContent');
+  if(mode==='login'){
+    box.innerHTML=`<h2>Login</h2>
+    <form id="loginForm">
+      <label>Email</label><input id="loginEmail" type="email" required>
+      <label>Password</label><input id="loginPass" type="password" required>
+      <button class="btn" type="submit">Login</button>
+      <p style="margin-top:10px;text-align:right;">
+        <a href="#" onclick="openAuth('forget');return false;">Forget Password?</a>
+      </p>
+    </form>`;
+    document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();login();};
+  } 
+  else if(mode==='register'){
+    box.innerHTML=`<h2>Register</h2>
+    <form id="regForm">
+      <label>Name</label><input id="regName" required>
+      <label>Email</label><input id="regEmail" type="email" required>
+      <label>Password</label><input id="regPass" type="password" required>
+      <label>Role</label>
+      <select id="regRole">
+        <option value="patient">Patient</option>
+        <option value="doctor">Doctor</option>
+      </select>
+      <button class="btn" type="submit">Register</button>
+    </form>`;
+    document.getElementById('regForm').onsubmit=e=>{e.preventDefault();register();};
+  } 
+  else if(mode==='forgot'){
+    box.innerHTML=`<h2>Reset Password</h2>
+    <form id="forgotForm">
+      <label>Email</label><input id="fpEmail" type="email" required>
+      <button class="btn" type="button" onclick="sendOTP()">Send OTP</button>
+      <div id="otpSection" class="hidden">
+        <label>Enter OTP</label><input id="fpOtp" required>
+        <label>New Password</label><input id="fpPass" type="password" required>
+        <button class="btn" type="submit">Reset</button>
+      </div>
+    </form>`;
+    document.getElementById('forgetForm').onsubmit=e=>{e.preventDefault();resetPassword();};
+  }
+}
+function closeAuth(){document.getElementById('authModal').style.display='none';}
+
+/* Login/Register/Reset */
+function login(){
+  const email=document.getElementById('loginEmail').value.toLowerCase();
+  const pass=document.getElementById('loginPass').value;
+  const u=store.get('users').find(x=>x.email===email&&x.password===pass);
+  if(!u)return alert("Invalid credentials");
+  currentUser=u;store.set('currentUser',u);closeAuth();refreshUI();
+}
+function register(){
+  const name=document.getElementById('regName').value;
+  const email=document.getElementById('regEmail').value.toLowerCase();
+  const pass=document.getElementById('regPass').value;
+  const role=document.getElementById('regRole').value;
+  const users=store.get('users');
+  if(users.some(u=>u.email===email))return alert("Email already registered");
+  const u={name,email,password:pass,role};users.push(u);store.set('users',users);
+  if(role==="doctor"){
+    const docs=store.get('doctors');
+    docs.push({id:"d"+Date.now(),name,dept:"General",exp:0,phone,email,rating:4.5});store.set('doctors',docs);
+  }
+  currentUser=u;store.set('currentUser',u);closeAuth();refreshUI();
+}
+
+let generatedOtp=null;
+function sendOTP(){
+  const email=document.getElementById('fpEmail').value.toLowerCase();
+  const users=store.get('users');
+  const u=users.find(x=>x.email===email);
+  if(!u) return alert("Email not found");
+  generatedOtp=Math.floor(100000+Math.random()*900000); // 6-digit OTP
+  localStorage.setItem("resetOtp",generatedOtp);
+  localStorage.setItem("resetEmail",email);
+  alert("Your OTP is: "+generatedOtp+" (simulated)");
+  document.getElementById("otpSection").classList.remove("hidden");
+}
+
+function resetPassword(){
+  const email=document.getElementById('fpEmail').value.toLowerCase();
+  const otp=document.getElementById('fpOtp').value;
+  const newPass=document.getElementById('fpPass').value;
+  const users=store.get('users');
+  const u=users.find(x=>x.email===email);
+  if(!u)return alert("Email not found");
+  if(otp!==localStorage.getItem("resetOtp")||email!==localStorage.getItem("resetEmail")) return alert("Invalid OTP");
+  u.password=newPass;
+  store.set('users',users);
+  localStorage.removeItem("resetOtp");
+  localStorage.removeItem("resetEmail");
+  alert("Password updated! Please login.");
+  openAuth('login');
+}
+
+function logout(){currentUser=null;store.set('currentUser',null);refreshUI();}
+
+/* Doctor list */
+function renderDoctors(){
+  const docs=store.get('doctors');
+  const grid=document.getElementById('doctorsGrid');grid.innerHTML="";
+  const select=document.getElementById('doctorSelect');select.innerHTML="<option value=''>Select Doctor</option>";
+  docs.forEach(d=>{
+    grid.innerHTML+=`<div class="card">
+      <b>${d.name}</b>
+      <p>${d.dept} • ${d.exp} yrs</p>
+      <p>Email: ${d.email}</p>
+      <p>⭐ Rating: ${d.rating||"New"}</p>
+      ${currentUser && currentUser.role==="patient" ? `<button class="btn" onclick="prefill('${d.email}')">Book</button>`:""}
+    </div>`;
+    select.innerHTML+=`<option value="${d.email}">${d.name} - ${d.dept}</option>`;
+  });
+}
+function prefill(email){
+  document.getElementById('doctorSelect').value=email;
+  document.getElementById('bookingSection').scrollIntoView({behavior:"smooth"});
+}
+/* Booking */
+document.getElementById('appointmentForm').onsubmit=e=>{
+  e.preventDefault();
+  const appts=store.get('appts');
+  appts.push({id:"a"+Date.now(),patient:currentUser.name,patientEmail:currentUser.email,
+    doctor:document.getElementById('doctorSelect').value,
+    date:document.getElementById('apptDate').value,
+    time:document.getElementById('apptTime').value,
+    symptoms:document.getElementById('symptoms').value,status:"Pending"});
+  store.set('appts',appts);alert("Appointment booked!");updateTables();
+};
+
+/* Dashboards */
+function updateTables(){
+  const appts=store.get('appts');
+  // patient// patient
+const pt=document.querySelector("#patientTable tbody");pt.innerHTML="";
+appts.filter(a=>a.patientEmail===currentUser?.email).forEach(a=>{
+  const doc=store.get('doctors').find(d=>d.email===a.doctor);
+  // ✅ add Cancel button only if NOT approved
+  // ✅ Only show Cancel button if status is still Pending
+const cancelBtn = (a.status==="Pending") 
+  ? `<button class="delete" onclick="cancelAppointment('${a.id}')">Cancel</button>` 
+  : "";
+
+  pt.innerHTML += `<tr>
+      <td>${doc?.name||a.doctor}</td>
+      <td>${a.date}</td>    
+      <td>${a.time}</td>
+      <td>${a.status} ${cancelBtn}</td>
+    </tr>`;
+});
+
+  // doctor
+  const dt=document.querySelector("#doctorTable tbody");dt.innerHTML="";
+  appts.filter(a=>a.doctor===currentUser?.email).forEach(a=>{
+    dt.innerHTML+=`<tr><td>${a.patient}</td><td>${a.date}</td><td>${a.time}</td><td>${a.symptoms}</td>
+    <td>${a.status}</td>
+    <td class="actions">
+      <button class="approve" onclick="updateStatus('${a.id}','Approved')">Approve</button>
+      <button class="reject" onclick="updateStatus('${a.id}','Rejected')">Reject</button>
+    </td></tr>`;
+  });
+  // admin
+  const at=document.querySelector("#adminTable tbody");at.innerHTML="";
+  appts.forEach(a=>{
+    const doc=store.get('doctors').find(d=>d.email===a.doctor);
+    at.innerHTML+=`<tr><td>${a.patient}</td><td>${doc?.name||a.doctor}</td><td>${a.date}</td><td>${a.time}</td><td>${a.status}</td></tr>`;
+  });
+
+// ✅ admin patients
+const ap = document.querySelector("#adminPatients tbody");
+ap.innerHTML = "";
+store.get('users')
+  .filter(u => u.role === "patient")
+  .forEach(p => {
+    ap.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.email}</td>
+        <td class="actions">
+          <button class="delete" onclick="deletePatient('${p.email}')">Delete</button>
+        </td>
+      </tr>`;
+  });
+
+  // admin doctors
+  const ad=document.querySelector("#adminDoctors tbody");ad.innerHTML="";
+  store.get('doctors').forEach(d=>{
+    ad.innerHTML+=`<tr><td>${d.name}</td><td>${d.dept}</td><td>${d.exp}</td><td>${d.email}</td>
+    <td class="actions"><button class="edit" onclick="openDoctorModal('${d.id}')">Edit</button><button class="delete" onclick="deleteDoctor('${d.id}')">Delete</button></td></tr>`;
+  });
+}
+function updateStatus(id,status){
+  const appts=store.get('appts');
+  const a=appts.find(x=>x.id===id);
+  a.status=status;
+  store.set('appts',appts);
+  updateTables();
+}
+
+/* Admin doctor edit/delete */
+function openDoctorModal(id){
+  const d=store.get('doctors').find(x=>x.id===id);
+  document.getElementById('docId').value=d.id;
+  document.getElementById('docName').value=d.name;
+  document.getElementById('docDept').value=d.dept;
+  document.getElementById('docExp').value=d.exp;
+  document.getElementById('docEmail').value=d.email;
+  document.getElementById('doctorModal').style.display='flex';
+}
+function closeDoctorModal(){document.getElementById('doctorModal').style.display='none';}
+document.getElementById('doctorForm').onsubmit=e=>{
+  e.preventDefault();
+  const id=document.getElementById('docId').value;
+  const docs=store.get('doctors');
+  const d=docs.find(x=>x.id===id);
+  d.name=document.getElementById('docName').value;
+  d.dept=document.getElementById('docDept').value;
+  d.exp=parseInt(document.getElementById('docExp').value);
+  d.email=document.getElementById('docEmail').value;
+  store.set('doctors',docs);
+  closeDoctorModal();
+  renderDoctors();updateTables();
+};
+function deleteDoctor(id){
+  if(!confirm("Delete this doctor?"))return;
+  let docs=store.get('doctors');docs=docs.filter(d=>d.id!==id);store.set('doctors',docs);
+  renderDoctors();updateTables();
+}
+function deletePatient(email){
+  if(!confirm("Delete this patient?")) return;
+
+  // Remove from users list
+  let users = store.get('users');
+  users = users.filter(u => u.email !== email);
+  store.set('users', users);
+
+  // Also remove their appointments
+  let appts = store.get('appts');
+  appts = appts.filter(a => a.patientEmail !== email);
+  store.set('appts', appts);
+
+  updateTables();
+}
+
+
+<!-- ✅ ADDED cancelAppointment() function -->
+function cancelAppointment(id){
+  if(!confirm("Cancel this appointment?")) return;
+  const appts = store.get('appts');
+  const a = appts.find(x=>x.id===id);
+  if(!a) return;
+
+  if(a.status==="Approved"){
+    alert("You cannot cancel an approved appointment.");
+    return;
+  }
+
+  // ✅ mark as Cancelled
+  a.status = "Cancelled";
+  store.set('appts', appts);
+  updateTables(); // refresh UI
+}
+ 
+/* Refresh UI */
+function refreshUI(){ /* same as before with updateTables() call */ }
+function refreshUI(){
+  document.getElementById('btnLogin').classList.remove('hidden');
+  document.getElementById('btnRegister').classList.remove('hidden');
+  document.getElementById('btnLogout').classList.add('hidden');
+  document.getElementById('userBadge').classList.add('hidden');
+  document.getElementById('doctorsSection').classList.add('hidden');
+  document.getElementById('bookingSection').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('aboutSection').classList.remove('hidden');
+  document.getElementById('heroSection').classList.remove('hidden');
+  if(currentUser){
+    document.getElementById('btnLogin').classList.add('hidden');
+    document.getElementById('btnRegister').classList.add('hidden');
+    document.getElementById('btnLogout').classList.remove('hidden');
+    document.getElementById('userBadge').classList.remove('hidden');
+    document.getElementById('userBadge').textContent=`${currentUser.name} (${currentUser.role})`;
+    document.getElementById('dashboard').classList.remove('hidden');
+    document.getElementById('aboutSection').classList.add('hidden');
+    document.getElementById('heroSection').classList.add('hidden');
+    document.getElementById('dashTitle').textContent=`${currentUser.role} Dashboard`;
+    if(currentUser.role==="patient"){document.getElementById('patientPanel').classList.remove('hidden');document.getElementById('doctorsSection').classList.remove('hidden');document.getElementById('bookingSection').classList.remove('hidden');}
+    else{document.getElementById('patientPanel').classList.add('hidden');}
+    if(currentUser.role==="doctor"){document.getElementById('doctorPanel').classList.remove('hidden');} else{document.getElementById('doctorPanel').classList.add('hidden');}
+    if(currentUser.role==="admin"){document.getElementById('adminPanel').classList.remove('hidden');} else{document.getElementById('adminPanel').classList.add('hidden');}
+    updateTables();
+  }
+  renderDoctors();
+}
+window.onload=refreshUI;
+</script>
+</body>
+</html>
